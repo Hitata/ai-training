@@ -2,5 +2,6 @@
 __pycache__/
 .DS_Store
 *.pdf
+!Ung-dung-AI-vao-cong-viec.pdf
 slides/assets/pdf/
 slides/assets/img/
