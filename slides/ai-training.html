@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ứng dụng AI vào công việc — TrungTH19</title>
+<!--
+  MASTER DECK — AI training, organized as a 4-part presentation.
+  Built on the Đinh Hỏa design system (brutalist, ngũ hành palette). Tokens inlined; fonts via Google CDN.
+  Flow: Mở đầu · P1 Bối cảnh · P2 Prompting · P3 Gems & NotebookLM · P4 Áp dụng & thói quen.
+  Navigate: → / Space / click-right = next · ← = prev · F = fullscreen · P = print/PDF
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,700&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root{
+  --paper:#E8E4DD; --plaster:#B8A992; --cement:#8C8A85; --cement-text:#6B6862; --ink:#1F1F1F;
+  --ember:#A0522D; --ember-deep:#8F4527; --ink-slate:#28323B; --moss:#6B7A5A; --brass:#9A8557;
+  --ember-lift:#C06A3D;
+  --font-display:'Be Vietnam Pro',system-ui,sans-serif;
+  --font-sans:'Be Vietnam Pro',system-ui,sans-serif;
+  --font-serif:'Newsreader',Georgia,serif;
+  --font-mono:'Space Mono',ui-monospace,monospace;
+  --tex-conduit:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 22%,transparent) 0 2px,transparent 2px 8px);
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+html,body{margin:0;height:100%;}
+body{background:#111110;color:var(--ink);font-family:var(--font-sans);display:grid;place-items:center;overflow:hidden;}
+
+#deck{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;}
+.stage{width:1280px;height:720px;position:relative;transform-origin:center center;background:var(--paper);box-shadow:0 0 0 1px #000,0 24px 80px rgba(0,0,0,.55);overflow:hidden;}
+
+.track{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.10);z-index:40;}
+.track .fill{height:100%;width:0;background:var(--ember);transition:width .25s linear;}
+.stage[data-ground="ink"] .track,.stage[data-ground="ember"] .track{background:rgba(255,255,255,.14);}
+.stage[data-ground="ember"] .track .fill{background:var(--ink);}
+
+.foot{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 64px;border-top:1px solid rgba(31,31,31,.22);font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cement-text);}
+.foot .mark{display:flex;align-items:center;gap:10px;}
+.foot .bar{width:22px;height:9px;background:var(--ember);display:inline-block;}
+.stage[data-ground="ink"] .foot{color:#9A968E;border-top-color:rgba(232,228,221,.18);}
+.stage[data-ground="ember"] .foot{color:rgba(232,228,221,.85);border-top-color:rgba(232,228,221,.28);}
+.stage[data-ground="ember"] .foot .bar{background:var(--ink);}
+
+.slide{position:absolute;inset:0;padding:54px 64px 60px;display:none;flex-direction:column;background:var(--paper);color:var(--ink);}
+.slide.active{display:flex;}
+.slide[data-ground="ink"]{background:var(--ink);color:var(--paper);}
+.slide[data-ground="ember"]{background:var(--ember);color:var(--paper);}
+
+.eyebrow{font-family:var(--font-mono);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--cement-text);margin:0 0 16px;}
+.slide[data-ground="ink"] .eyebrow{color:#9A968E;}
+.slide[data-ground="ember"] .eyebrow{color:rgba(232,228,221,.9);}
+.eyebrow .hot{color:var(--ember);}
+.slide[data-ground="ink"] .eyebrow .hot{color:var(--ember-lift);}
+
+h1.display{font-family:var(--font-display);font-weight:900;font-size:54px;line-height:1.14;letter-spacing:-.03em;margin:0;}
+h2.title{font-family:var(--font-display);font-weight:800;font-size:30px;line-height:1.22;letter-spacing:-.02em;margin:0 0 4px;}
+.em{color:var(--ember);}
+.slide[data-ground="ink"] .em{color:var(--ember-lift);}
+.slide[data-ground="ember"] .em{color:var(--ink);}
+.lead{font-family:var(--font-serif);font-size:22px;line-height:1.5;margin:0;max-width:60ch;}
+.lead em{font-style:italic;color:var(--ember);}
+.slide[data-ground="ink"] .lead em{color:var(--ember-lift);}
+.body{display:flex;flex-direction:column;gap:16px;flex:1;min-height:0;justify-content:center;}
+.head-block{margin-bottom:2px;}
+.muted{color:var(--cement-text);}
+.slide[data-ground="ink"] .muted{color:#9A968E;}
+
+/* numbered list */
+.idx{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+.idx li{display:grid;grid-template-columns:50px 1fr;gap:18px;align-items:start;padding:13px 0;border-top:1px solid rgba(31,31,31,.18);}
+.idx li:last-child{border-bottom:1px solid rgba(31,31,31,.18);}
+.slide[data-ground="ink"] .idx li{border-color:rgba(232,228,221,.16);}
+.idx .n{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--ember);padding-top:3px;}
+.slide[data-ground="ink"] .idx .n{color:var(--ember-lift);}
+.idx .t{font-size:19px;line-height:1.45;font-weight:500;}
+.idx .t b{font-weight:800;}
+.idx .t .sub{display:block;font-size:15.5px;color:var(--cement-text);font-weight:400;margin-top:3px;line-height:1.45;}
+.slide[data-ground="ink"] .idx .t .sub{color:#9A968E;}
+
+/* cards */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.card{border:1px solid var(--ink);background:var(--paper);padding:20px 22px;position:relative;display:flex;flex-direction:column;gap:8px;}
+.card.block{box-shadow:4px 4px 0 0 var(--ink);}
+.card.ink{background:var(--ink);color:var(--paper);border-color:var(--ink);background-image:var(--tex-conduit);}
+.card .k{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--cement-text);}
+.card.ink .k{color:#B8A992;}
+.card .ct{font-family:var(--font-display);font-weight:800;font-size:21px;line-height:1.28;letter-spacing:-.01em;margin:0;}
+.card .cp{font-size:16px;line-height:1.5;margin:0;}
+.card.ink .cp{color:#D8D3CA;}
+.card.pros{border-left:4px solid var(--moss);}
+.card.cons{border-left:4px solid var(--cement);}
+.card .k.pos{color:var(--moss);}
+.card .k.neg{color:var(--cement-text);}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+.card li{font-size:16px;line-height:1.45;}
+.card.ink::before,.card.ink::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#6b6862,#2a2826);}
+.card.ink::before{top:9px;left:9px;}.card.ink::after{top:9px;right:9px;}
+.card.ink .rv-b{position:absolute;bottom:9px;left:9px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#6b6862,#2a2826);}
+.card.ink .rv-c{position:absolute;bottom:9px;right:9px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#6b6862,#2a2826);}
+
+/* callout */
+.callout{border-left:4px solid var(--ember);background:var(--plaster);padding:15px 20px;display:flex;flex-direction:column;gap:5px;}
+.slide[data-ground="ink"] .callout{background:#2A2826;}
+.callout .k{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ember);}
+.slide[data-ground="ink"] .callout .k{color:var(--ember-lift);}
+.callout .c{font-size:17.5px;line-height:1.5;margin:0;}
+.slide[data-ground="ink"] .callout .c{color:#E8E4DD;}
+
+/* divider */
+.kicker{display:flex;align-items:center;gap:30px;}
+.kicker .num{font-family:var(--font-display);font-weight:900;font-size:170px;line-height:.8;letter-spacing:-.04em;color:var(--ember);}
+
+/* cover / tags */
+.tag{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;border:1px solid currentColor;padding:5px 11px;display:inline-block;}
+.tag.solid{background:var(--ember);color:var(--paper);border-color:var(--ember);}
+.cover-foot{display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;}
+
+/* checklist */
+.checks{display:flex;flex-direction:column;}
+.checks .row{display:grid;grid-template-columns:30px 50px 1fr;gap:16px;align-items:center;padding:18px 0;border-top:1px solid rgba(31,31,31,.18);}
+.checks .row:last-child{border-bottom:1px solid rgba(31,31,31,.18);}
+.checks .box{width:22px;height:22px;border:2px solid var(--ink);}
+.checks .n{font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--cement-text);}
+.checks .t{font-size:21px;font-weight:600;line-height:1.45;}
+
+/* formula */
+.formula{display:flex;border:1px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink);}
+.formula .seg{flex:1;padding:16px 18px;border-right:1px solid var(--ink);display:flex;flex-direction:column;gap:4px;}
+.formula .seg:last-child{border-right:none;}
+.formula .seg .lbl{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ember);}
+.formula .seg .v{font-family:var(--font-display);font-weight:800;font-size:19px;line-height:1.2;}
+
+/* prompt framework chips + meta */
+.comps{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 2px;}
+.chip{border:1px solid var(--ink);padding:8px 13px;font-size:15px;line-height:1.3;background:var(--paper);}
+.chip b{font-family:var(--font-mono);font-weight:700;color:var(--ember);margin-right:7px;}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;background:var(--ember);color:var(--paper);padding:4px 10px;margin-left:8px;vertical-align:middle;}
+.fw-list{list-style:none;margin:0;padding:0;}
+.fw-list li{display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:baseline;border-top:1px solid rgba(31,31,31,.18);padding:13px 0;}
+.fw-list li:last-child{border-bottom:1px solid rgba(31,31,31,.18);}
+.fw-list .nm{font-family:var(--font-display);font-weight:800;font-size:21px;}
+.fw-list .ds{font-size:17px;line-height:1.45;color:var(--cement-text);}
+
+/* comparison table */
+.cmp{width:100%;border-collapse:collapse;border:1px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink);background:var(--paper);}
+.cmp th,.cmp td{border:1px solid var(--ink);padding:14px 18px;text-align:left;vertical-align:middle;}
+.cmp thead th{background:var(--ink);color:var(--paper);font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;line-height:1.3;}
+.cmp tbody td{font-size:18px;line-height:1.4;font-weight:500;}
+.cmp.sm tbody td{font-size:16px;}
+.cmp td.fw{font-weight:700;}
+.cmp tr.rec td.fw{color:var(--ember);}
+.cmp td.tool{font-family:var(--font-mono);font-size:15.5px;font-weight:700;color:var(--ember);background:color-mix(in srgb,var(--ember) 7%,var(--paper));}
+.cmp tbody tr:nth-child(even) td:not(.tool){background:color-mix(in srgb,var(--cement) 11%,var(--paper));}
+.cmp tbody tr:nth-child(even) td.tool{background:color-mix(in srgb,var(--ember) 11%,var(--paper));}
+
+/* use-case grid */
+.ucgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;}
+.uc{display:grid;grid-template-columns:34px 1fr;gap:14px;align-items:start;border-top:1px solid rgba(31,31,31,.18);padding:11px 0;}
+.uc .n{font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--ember);padding-top:2px;}
+.uc .t{font-size:17px;line-height:1.35;font-weight:700;}
+.uc .t .s{display:block;font-weight:400;font-size:14px;color:var(--cement-text);margin-top:2px;line-height:1.4;}
+
+.note{font-family:var(--font-serif);font-size:20px;line-height:1.5;margin:0;}
+.note em{font-style:italic;color:var(--ember);}
+.src{font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;line-height:1.5;color:var(--cement-text);margin:0;}
+.slide[data-ground="ink"] .src{color:#9A968E;}
+
+/* infographics — icons, logos, glyph motifs */
+.ic,.uci,.cardic{color:var(--ember);vertical-align:middle;flex:none;}
+.slide[data-ground="ink"] .ic{color:var(--ember-lift);}
+.mt-ic{display:block;margin-bottom:10px;}
+.uc{align-items:center;}
+.uci{color:var(--ember);}
+.cardic{margin-bottom:4px;}
+.toollogo{position:absolute;top:48px;right:64px;height:36px;opacity:.85;z-index:2;}
+.cardlogo{height:24px;margin-bottom:8px;opacity:.85;}
+.gmotif{position:absolute;right:48px;bottom:20px;font-family:var(--font-serif);font-size:300px;line-height:.78;color:rgba(232,228,221,.06);pointer-events:none;user-select:none;z-index:0;}
+.slide .eyebrow,.slide .body,.slide .head-block{position:relative;z-index:1;}
+
+#hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:60;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#7a766e;background:rgba(0,0,0,.4);padding:6px 14px;border-radius:2px;transition:opacity .4s;pointer-events:none;}
+
+@media print{@page{size:1280px 720px;margin:0;}body{display:block;background:#fff;}#deck{position:static;}.stage{transform:none!important;box-shadow:none;page-break-after:always;}.slide{display:none!important;}.slide.print{display:flex!important;}#hint,.track{display:none;}}
+</style>
+</head>
+<body>
+<div id="deck">
+  <div class="stage" id="stage" data-ground="ink">
+    <div class="track"><div class="fill" id="fill"></div></div>
+
+    <!-- ============ MỞ ĐẦU ============ -->
+    <!-- 1 COVER -->
+    <section class="slide active" data-ground="ink">
+      <div class="eyebrow">/ Đào tạo nội bộ &nbsp;·&nbsp; <span class="hot">2026</span></div>
+      <div class="body" style="justify-content:center;gap:26px;">
+        <h1 class="display" style="font-size:64px;max-width:15ch;">Ứng dụng <span class="em">AI</span><br>vào công việc</h1>
+        <p class="lead" style="color:#D8D3CA;">Từ hiểu bối cảnh, biết ra lệnh, đến biến AI thành thói quen hằng ngày.</p>
+        <div style="display:flex;gap:12px;"><span class="tag solid">TrungTH19</span><span class="tag" style="color:#B8A992;">4 phần</span></div>
+      </div>
+    </section>
+
+    <!-- 2 AGENDA -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Nội dung buổi học</div>
+      <div class="head-block"><h2 class="title">Bốn phần, một <span class="em">mạch xuyên suốt</span>.</h2></div>
+      <div class="body">
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t"><b>Bối cảnh AI 2026</b><span class="sub">Ai là ai, làm được gì, khi nào dùng công cụ nào.</span></span></li>
+          <li><span class="n">02</span><span class="t"><b>Ra lệnh cho AI — Prompting</b><span class="sub">Công thức và các khung prompt chuyên nghiệp.</span></span></li>
+          <li><span class="n">03</span><span class="t"><b>Trợ lý riêng &amp; tài liệu</b><span class="sub">Gemini Gems và NotebookLM.</span></span></li>
+          <li><span class="n">04</span><span class="t"><b>Áp dụng &amp; biến thành thói quen</b><span class="sub">Đưa AI vào việc thật và giữ nhịp lâu dài.</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ PHẦN 1 — BỐI CẢNH ============ -->
+    <section class="slide" data-ground="ink">
+      <span class="gmotif">火</span>
+      <div class="eyebrow">/ Phần 01</div>
+      <div class="body" style="justify-content:center;">
+        <div class="kicker"><div class="num">01</div><div>
+          <h2 class="title" style="font-size:40px;color:var(--paper);">Bản đồ AI 2026</h2>
+          <p class="lead" style="color:#D8D3CA;margin-top:10px;">Ai là ai — và <em>khi nào</em> dùng cái nào.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- AI vs HUMAN -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ AI và con người</div>
+      <div class="head-block"><h2 class="title">AI giỏi gì, <span class="em">con người</span> giỏi gì.</h2></div>
+      <div class="body">
+        <table class="cmp">
+          <colgroup><col style="width:31%"><col style="width:35%"><col style="width:34%"></colgroup>
+          <thead><tr><th>Thế mạnh của AI</th><th>Công cụ nên dùng</th><th>Lợi thế của con người</th></tr></thead>
+          <tbody>
+            <tr><td>Nhận diện quy luật</td><td class="tool">Gemini</td><td>Trí tuệ cảm xúc</td></tr>
+            <tr><td>Xử lý dữ liệu tốc độ cao</td><td class="tool">Gemini · ChatGPT</td><td>Phán đoán đạo đức</td></tr>
+            <tr><td>Tự động hoá công việc</td><td class="tool">Codex · AI agents</td><td>Thích ứng giác quan</td></tr>
+            <tr><td>Tạo ngôn ngữ (viết)</td><td class="tool">Claude · GPT‑5.5</td><td>Ứng biến sáng tạo</td></tr>
+            <tr><td>Truy xuất thông tin</td><td class="tool">NotebookLM · Gemini</td><td>Tư duy phản biện</td></tr>
+          </tbody>
+        </table>
+        <p class="note">AI lo phần <em>tốc độ và khối lượng</em>; con người giữ phần <em>phán đoán, đạo đức và sáng tạo</em>.</p>
+      </div>
+    </section>
+
+    <!-- BIG PLAYERS -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Bối cảnh — các ông lớn</div>
+      <div class="head-block"><h2 class="title">2026: cuộc đua của <span class="em">vài ông lớn</span>.</h2></div>
+      <div class="body">
+        <div class="grid2">
+          <div class="card block"><i data-lucide="sparkles" class="cardic" width="22" height="22"></i><div class="k">OpenAI</div><p class="ct">ChatGPT (GPT‑5.5) + Codex</p><p class="cp muted">Viết sáng tạo, tác nhân, lập trình.</p></div>
+          <div class="card block"><i data-lucide="layout-grid" class="cardic" width="22" height="22"></i><div class="k">Google</div><p class="ct">Gemini (3.1 Pro)</p><p class="cp muted">Tích hợp Workspace + NotebookLM.</p></div>
+          <div class="card block"><i data-lucide="pen-line" class="cardic" width="22" height="22"></i><div class="k">Anthropic</div><p class="ct">Claude (Opus 4.8)</p><p class="cp muted">Viết hay nhất, lập trình giỏi nhất.</p></div>
+          <div class="card block"><i data-lucide="radio" class="cardic" width="22" height="22"></i><div class="k">xAI</div><p class="ct">Grok</p><p class="cp muted">Dữ liệu thời gian thực từ X.</p></div>
+        </div>
+        <p class="note">Không có "AI tốt nhất" — chỉ có <em>công cụ hợp với việc</em>.</p>
+      </div>
+    </section>
+
+    <!-- OPEN SOURCE -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Bối cảnh — mã nguồn mở</div>
+      <div class="head-block"><h2 class="title">Mã nguồn mở: <span class="em">rẻ, tự chủ</span>, đang bứt phá.</h2></div>
+      <div class="body">
+        <div class="grid2">
+          <div class="card block"><img class="cardlogo" src="https://cdn.simpleicons.org/deepseek/1F1F1F" alt="DeepSeek" onerror="this.style.display='none'"><div class="k">DeepSeek V4 · MIT</div><p class="ct">Mạnh nhất nhóm mở, rẻ bất ngờ</p><p class="cp"><b>Khả năng:</b> ngang ngửa mô hình lớn, ngữ cảnh 1M, đa phương thức.</p><p class="cp"><b>Dùng khi:</b> xử lý khối lượng lớn (~1/20 chi phí); tự host để giữ dữ liệu.</p></div>
+          <div class="card block"><img class="cardlogo" src="https://cdn.simpleicons.org/qwen/1F1F1F" alt="Qwen" onerror="this.style.display='none'"><div class="k">Qwen 3.5 · Apache 2.0</div><p class="ct">Linh hoạt nhất để tùy biến</p><p class="cp"><b>Khả năng:</b> suy luận &amp; toán mạnh, lập trình tốt, ngữ cảnh dài.</p><p class="cp"><b>Dùng khi:</b> fine‑tune &amp; triển khai thương mại miễn phí bản quyền, chạy on‑prem.</p></div>
+        </div>
+        <p class="note">Mô hình mở: <em>1% → ~15% thị phần</em> chỉ trong một năm. Chiến lược 2026: việc nặng &amp; dữ liệu nhạy cảm → mô hình mở; việc khó nhất → mô hình đóng.</p>
+      </div>
+    </section>
+
+    <!-- GEMINI -->
+    <section class="slide" data-ground="paper">
+      <img class="toollogo" src="https://cdn.simpleicons.org/googlegemini/1F1F1F" alt="Gemini" onerror="this.style.display='none'">
+      <div class="eyebrow">/ Công cụ 01 — Google</div>
+      <div class="head-block"><h2 class="title">Gemini — AI <span class="em">sống trong bộ công cụ</span> của bạn.</h2></div>
+      <div class="body">
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t">Mạnh nhất về <b>suy luận &amp; toán</b>; đa phương thức (ảnh, PDF, video).</span></li>
+          <li><span class="n">02</span><span class="t"><b>Tích hợp sâu Google Workspace</b> — Docs, Sheets, Gmail, Meet + NotebookLM.</span></li>
+          <li><span class="n">03</span><span class="t"><b>Deep Research:</b> tự tìm và tổng hợp thông tin trên web.</span></li>
+          <li><span class="n">04</span><span class="t">Ngữ cảnh siêu dài; <b>chi phí rẻ nhất</b>. <span class="sub">Hợp với: làm việc trong Google, nghiên cứu, dữ liệu.</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CLAUDE -->
+    <section class="slide" data-ground="paper">
+      <img class="toollogo" src="https://cdn.simpleicons.org/claude/1F1F1F" alt="Claude" onerror="this.style.display='none'">
+      <div class="eyebrow">/ Công cụ 02 — Anthropic</div>
+      <div class="head-block"><h2 class="title">Claude — <span class="em">viết hay nhất</span>, lập trình giỏi nhất.</h2></div>
+      <div class="body">
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t"><b>Điểm tổng thể cao nhất 2026</b> (Opus 4.8).</span></li>
+          <li><span class="n">02</span><span class="t"><b>Số 1 về lập trình</b> (SWE‑bench 88.6%).</span></li>
+          <li><span class="n">03</span><span class="t"><b>Văn phong tự nhiên nhất</b> — báo cáo, email, nội dung dài.</span></li>
+          <li><span class="n">04</span><span class="t">Xuất tới <b>128K token một lần</b> (tài liệu rất dài). <span class="sub">Hợp với: viết, tài liệu dài, lập trình, phân tích.</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CODEX -->
+    <section class="slide" data-ground="paper">
+      <i data-lucide="terminal" class="ic" width="36" height="36" style="position:absolute;top:48px;right:64px;z-index:2;"></i>
+      <div class="eyebrow">/ Công cụ 03 — OpenAI</div>
+      <div class="head-block"><h2 class="title">Codex — <span class="em">lập trình viên AI</span> tự động.</h2></div>
+      <div class="body">
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t"><b>Tác nhân (agent) lập trình</b> của OpenAI, chạy trên GPT‑5.5.</span></li>
+          <li><span class="n">02</span><span class="t">Không chỉ gợi ý — <b>tự đọc dự án, viết, chạy test, sửa lỗi</b>.</span></li>
+          <li><span class="n">03</span><span class="t">Giao việc bằng ngôn ngữ thường → tự làm nhiều bước.</span></li>
+          <li><span class="n">04</span><span class="t">Cùng nhóm: <b>Claude Code, Cursor, Antigravity</b>. <span class="sub">Lưu ý: chuyên lập trình (khác ChatGPT / Gemini dùng chung).</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- USE CASES -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ AI dùng để làm gì</div>
+      <div class="head-block"><h2 class="title">Tám nhóm việc <span class="em">phổ biến nhất</span>.</h2></div>
+      <div class="body">
+        <div class="ucgrid">
+          <div class="uc"><i data-lucide="search" class="uci" width="26" height="26"></i><span class="t">Nghiên cứu &amp; tổng hợp<span class="s">Deep Research trên web</span></span></div>
+          <div class="uc"><i data-lucide="scroll-text" class="uci" width="26" height="26"></i><span class="t">Tóm tắt tài liệu &amp; cuộc họp<span class="s">Rút gọn nội dung dài</span></span></div>
+          <div class="uc"><i data-lucide="pen-line" class="uci" width="26" height="26"></i><span class="t">Viết &amp; tạo báo cáo<span class="s">Tài liệu, email, nội dung</span></span></div>
+          <div class="uc"><i data-lucide="book-open" class="uci" width="26" height="26"></i><span class="t">Hỏi‑đáp tài liệu của bạn<span class="s">NotebookLM, có trích dẫn</span></span></div>
+          <div class="uc"><i data-lucide="code" class="uci" width="26" height="26"></i><span class="t">Lập trình &amp; tự động hoá<span class="s">Codex, Claude Code</span></span></div>
+          <div class="uc"><i data-lucide="bot" class="uci" width="26" height="26"></i><span class="t">Tác nhân tự động (AI agents)<span class="s">Xu hướng lớn nhất 2026</span></span></div>
+          <div class="uc"><i data-lucide="bar-chart-2" class="uci" width="26" height="26"></i><span class="t">Phân tích dữ liệu<span class="s">Bảng tính, biểu đồ</span></span></div>
+          <div class="uc"><i data-lucide="image" class="uci" width="26" height="26"></i><span class="t">Tạo ảnh &amp; dịch thuật<span class="s">Thiết kế, ngôn ngữ</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MATCHUP -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Chọn công cụ</div>
+      <div class="head-block"><h2 class="title">Việc nào → <span class="em">công cụ nào</span>?</h2></div>
+      <div class="body">
+        <table class="cmp sm">
+          <colgroup><col style="width:48%"><col style="width:52%"></colgroup>
+          <thead><tr><th>Công việc</th><th>Chọn công cụ</th></tr></thead>
+          <tbody>
+            <tr><td>Nghiên cứu sâu trên web</td><td class="tool">Gemini Deep Research · ChatGPT</td></tr>
+            <tr><td>Viết báo cáo, nội dung dài</td><td class="tool">Claude</td></tr>
+            <tr><td>Lập trình</td><td class="tool">Codex · Claude Code · Cursor</td></tr>
+            <tr><td>Phân tích dữ liệu, bảng tính</td><td class="tool">Gemini (Sheets) · ChatGPT</td></tr>
+            <tr><td>Hỏi tài liệu nội bộ</td><td class="tool">NotebookLM</td></tr>
+            <tr><td>Làm trong Email / Docs / Sheets</td><td class="tool">Gemini (Workspace)</td></tr>
+            <tr><td>Tin tức / thời gian thực</td><td class="tool">Gemini (Search) · Grok</td></tr>
+            <tr><td>Sáng tạo (ý tưởng, marketing)</td><td class="tool">GPT‑5.5 · Claude</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LIMITS -->
+    <section class="slide" data-ground="ink">
+      <div class="eyebrow">/ Giới hạn phải nhớ</div>
+      <div class="head-block"><h2 class="title" style="color:var(--paper)">Hai điều AI <span class="em">không</span> làm thay bạn.</h2></div>
+      <div class="body">
+        <div class="callout"><div class="k">AI có thể "bịa" — Hallucination</div><p class="c">AI đoán chữ theo xác suất, <b>không tra cứu sự thật</b> → có thể sai một cách rất tự tin. Việc quan trọng phải kiểm tra lại.</p></div>
+        <div class="callout"><div class="k">Bảo mật — dán lên tường</div><p class="c">Không dán vào AI: <b>mật khẩu, dữ liệu khách hàng, thông tin nội bộ nhạy cảm</b>.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ MẶT TRÁI — AI THAY ĐỔI CHÚNG TA ============ -->
+    <section class="slide" data-ground="ink">
+      <span class="gmotif">土</span>
+      <div class="eyebrow">/ Góc nhìn</div>
+      <div class="body" style="justify-content:center;gap:18px;">
+        <h1 class="display" style="font-size:48px;max-width:18ch;color:var(--paper);">Mặt trái: AI <span class="em">thay đổi chúng ta</span> thế nào.</h1>
+        <p class="lead" style="color:#D8D3CA;">Công cụ mạnh có cái giá của nó. Biết trước để <em>giữ phần người</em> — kèm cách thích ứng cho từng điều.</p>
+      </div>
+    </section>
+
+    <!-- mặt trái 01 — text bloat -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Mặt trái 01 — Văn bản</div>
+      <i data-lucide="file-text" class="ic mt-ic" width="34" height="34"></i>
+      <div class="head-block"><h2 class="title">Chữ <span class="em">nhiều hơn</span>, không ít đi.</h2></div>
+      <div class="body" style="gap:18px;">
+        <p class="lead">AI tạo ra rất nhiều chữ — và là chữ của AI: thường dài dòng, na ná nhau, khác giọng người. Kết quả: ta phải đọc <em>nhiều hơn</em>, không phải ít hơn.</p>
+        <div class="callout"><div class="k">Cách thích ứng</div><p class="c">Tạo một <b>system prompt</b> (chỉ dẫn cố định) buộc AI trả lời ngắn gọn, đúng ý bạn — ví dụ: "đi thẳng vào ý, dưới 5 câu, không rào đón".</p></div>
+      </div>
+    </section>
+
+    <!-- mặt trái 02 — cognitive offloading -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Mặt trái 02 — Tư duy</div>
+      <i data-lucide="brain" class="ic mt-ic" width="34" height="34"></i>
+      <div class="head-block"><h2 class="title">Hỏi AI <span class="em">thay vì tự nghĩ</span>.</h2></div>
+      <div class="body" style="gap:16px;">
+        <p class="lead">Càng giao việc suy nghĩ cho AI, khả năng tư duy phản biện càng giảm (cognitive offloading). Không mới — Google &amp; Stack Overflow đã bắt đầu điều này; AI chỉ làm nó nhanh hơn.</p>
+        <p class="src">— Gerlich 2025 (Societies) · MIT Media Lab: "cognitive debt" — giảm gắn kết não &amp; trí nhớ</p>
+        <div class="callout"><div class="k">Cách thích ứng</div><p class="c">Tự nghĩ trước khi hỏi. Giữ các buổi <b>họp người‑với‑người (2–3 người)</b> để brainstorm quanh mục tiêu.</p></div>
+      </div>
+    </section>
+
+    <!-- mặt trái 03 — deskilling -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Mặt trái 03 — Kỹ năng</div>
+      <i data-lucide="trending-down" class="ic mt-ic" width="34" height="34"></i>
+      <div class="head-block"><h2 class="title">Giao việc gì, <span class="em">mất kỹ năng đó</span>.</h2></div>
+      <div class="body" style="gap:16px;">
+        <p class="lead">Kỹ năng không dùng sẽ teo dần. Bắt đầu mọi việc bằng AI khiến não ít gắn kết, khó nhớ, kết quả thường "nhạt".</p>
+        <p class="src">— Khảo sát y tế Mỹ: 70% y tá &amp; 77% bác sĩ lo mất kỹ năng vì lệ thuộc AI</p>
+        <div class="callout"><div class="k">Cách thích ứng</div><p class="c"><b>Tự làm nháp trước, AI sửa sau.</b> Nghiên cứu MIT: làm bằng đầu mình rồi mới nhờ AI → giữ được tư duy và trí nhớ tốt nhất.</p></div>
+      </div>
+    </section>
+
+    <!-- mặt trái 04 — homogenization -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Mặt trái 04 — Giọng riêng</div>
+      <i data-lucide="copy" class="ic mt-ic" width="34" height="34"></i>
+      <div class="head-block"><h2 class="title">Ai cũng <span class="em">nói giống nhau</span>.</h2></div>
+      <div class="body" style="gap:18px;">
+        <p class="lead">AI thay giọng riêng của bạn bằng "cái có xác suất cao nhất". Dùng nhiều, mọi người và mọi văn bản dần giống nhau — mất dấu ấn cá nhân và sự đa dạng.</p>
+        <div class="callout"><div class="k">Cách thích ứng</div><p class="c">Dùng AI cho <b>bản nháp</b>, không phải bản cuối. Luôn biên tập lại về <b>giọng của bạn</b>; phán đoán cuối cùng là của người.</p></div>
+      </div>
+    </section>
+
+    <!-- mặt trái 05 — forcing function -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Mặt trái 05 — và cũng là cơ hội</div>
+      <i data-lucide="workflow" class="ic mt-ic" width="34" height="34"></i>
+      <div class="head-block"><h2 class="title">Buộc ta <span class="em">thiết kế hệ thống</span>, không chỉ làm việc vặt.</h2></div>
+      <div class="body" style="gap:14px;">
+        <p class="lead">AI làm việc vặt nhanh hơn người. Nên giá trị của ta dời lên: nghĩ có hệ thống, thiết kế quy trình, ra đề bài đúng — những "cơ bắp" hiện còn yếu. Ngược với thói quen "làm theo lệnh".</p>
+        <div class="callout"><div class="k">Cách thích ứng</div><p class="c">Xem mỗi lần dùng AI là một lần <b>học</b>: hỏi "việc này nên được <b>thiết kế</b> thế nào?" thay vì chỉ "làm cho xong".</p></div>
+        <p class="note">Đây là phần khó — nhưng cũng là nơi con người tạo ra khác biệt.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHẦN 2 — PROMPTING ============ -->
+    <section class="slide" data-ground="ink">
+      <span class="gmotif">水</span>
+      <div class="eyebrow">/ Phần 02</div>
+      <div class="body" style="justify-content:center;">
+        <div class="kicker"><div class="num">02</div><div>
+          <h2 class="title" style="font-size:40px;color:var(--paper);">Ra lệnh cho AI</h2>
+          <p class="lead" style="color:#D8D3CA;margin-top:10px;">Hỏi <em>đúng cách</em> để nhận kết quả đúng ý.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- BASIC FORMULA -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Nền tảng</div>
+      <div class="head-block"><h2 class="title">AI dở vì <span class="em">câu hỏi thiếu</span>, không phải AI kém.</h2></div>
+      <div class="body" style="gap:22px;">
+        <div class="formula">
+          <div class="seg"><span class="lbl">Vai trò</span><span class="v">Đóng vai ai?</span></div>
+          <div class="seg"><span class="lbl">Nhiệm vụ</span><span class="v">Làm gì?</span></div>
+          <div class="seg"><span class="lbl">Bối cảnh</span><span class="v">Thông tin nền?</span></div>
+          <div class="seg"><span class="lbl">Định dạng</span><span class="v">Ra dạng gì?</span></div>
+        </div>
+        <div class="callout"><div class="k">Ví dụ đủ 4 phần</div><p class="c">"Bạn là <b>trợ lý hành chính</b>. <b>Viết email nhắc lịch họp</b>: <b>9h thứ Ba, gửi 5 người</b>. <b>Ngắn gọn, lịch sự, dưới 5 câu</b>."</p></div>
+      </div>
+    </section>
+
+    <!-- FRAMEWORKS INTRO -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Nâng cấp — khung prompt</div>
+      <div class="head-block"><h2 class="title">Ba khung <span class="em">chuyên nghiệp</span> cho việc văn phòng.</h2></div>
+      <div class="body">
+        <ul class="fw-list">
+          <li><span class="nm">COSTAR</span><span class="ds">6 phần — kiểm soát kỹ văn phong, giọng điệu và đối tượng.</span></li>
+          <li><span class="nm">RACE</span><span class="ds">4 phần — nhanh, gọn, dễ nhớ cho việc hằng ngày.</span></li>
+          <li><span class="nm">R‑C‑C‑F‑E</span><span class="ds">5 phần — bản cân bằng cho dân văn phòng (khuyến nghị).</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- COSTAR -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Khung 01 — COSTAR</div>
+      <div class="head-block"><h2 class="title">COSTAR — kiểm soát <span class="em">giọng văn &amp; đối tượng</span>.</h2></div>
+      <div class="body">
+        <div class="comps">
+          <span class="chip"><b>C</b>Context · Bối cảnh</span>
+          <span class="chip"><b>O</b>Objective · Mục tiêu</span>
+          <span class="chip"><b>S</b>Style · Văn phong</span>
+          <span class="chip"><b>T</b>Tone · Giọng điệu</span>
+          <span class="chip"><b>A</b>Audience · Đối tượng</span>
+          <span class="chip"><b>R</b>Response · Định dạng</span>
+        </div>
+        <div class="grid2">
+          <div class="card pros"><div class="k pos">Ưu điểm</div><ul><li>Kiểm soát rất kỹ văn phong, giọng điệu, đối tượng.</li><li>Cho nội dung bóng bẩy, đúng "gu" người đọc.</li></ul></div>
+          <div class="card cons"><div class="k neg">Nhược điểm</div><ul><li>6 phần → dài dòng, quá mức cho việc đơn giản.</li><li>Không có "Vai trò" tường minh.</li></ul></div>
+        </div>
+        <div class="callout"><div class="k">Ví dụ — email khách hàng</div><p class="c">Bối cảnh: khách giao trễ 3 ngày. · Mục tiêu: xin lỗi + nêu cách bù. · Văn phong: chuyên nghiệp. · Giọng: chân thành. · Đối tượng: khách doanh nghiệp. · Định dạng: email &lt; 150 từ.</p></div>
+        <p class="note" style="font-size:16px;">Dùng khi: viết nội dung, marketing, email khách hàng — khi <em>giọng văn &amp; đối tượng</em> quan trọng.</p>
+      </div>
+    </section>
+
+    <!-- RACE -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Khung 02 — RACE</div>
+      <div class="head-block"><h2 class="title">RACE — <span class="em">nhanh, gọn</span>, dễ nhớ.</h2></div>
+      <div class="body">
+        <div class="comps">
+          <span class="chip"><b>R</b>Role · Vai trò</span>
+          <span class="chip"><b>A</b>Action · Hành động</span>
+          <span class="chip"><b>C</b>Context · Bối cảnh</span>
+          <span class="chip"><b>E</b>Expectation · Kỳ vọng</span>
+        </div>
+        <div class="grid2">
+          <div class="card pros"><div class="k pos">Ưu điểm</div><ul><li>Đơn giản 4 phần, dễ nhớ, làm nhanh.</li><li>Có vai trò + hành động rõ → hợp việc cần tốc độ.</li></ul></div>
+          <div class="card cons"><div class="k neg">Nhược điểm</div><ul><li>Ít kiểm soát văn phong &amp; định dạng.</li><li>"Kỳ vọng" dễ mơ hồ; yếu cho nội dung tinh tế.</li></ul></div>
+        </div>
+        <div class="callout"><div class="k">Ví dụ — việc nhanh</div><p class="c">Vai trò: trợ lý. · Hành động: tóm tắt biên bản họp đính kèm. · Bối cảnh: cuộc họp dự án X tuần này. · Kỳ vọng: 5 gạch đầu dòng + việc cần làm.</p></div>
+        <p class="note" style="font-size:16px;">Dùng khi: việc hằng ngày cần <em>tốc độ</em> — phân tích nhanh, tóm tắt, một yêu cầu cụ thể.</p>
+      </div>
+    </section>
+
+    <!-- RCCFE -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Khung 03 — R‑C‑C‑F‑E</div>
+      <div class="head-block"><h2 class="title">R‑C‑C‑F‑E — cho dân văn phòng <span class="badge">Khuyến nghị</span></h2></div>
+      <div class="body">
+        <div class="comps">
+          <span class="chip"><b>R</b>Role · Vai trò</span>
+          <span class="chip"><b>C</b>Context · Bối cảnh</span>
+          <span class="chip"><b>C</b>Constraints · Giới hạn</span>
+          <span class="chip"><b>F</b>Format · Định dạng</span>
+          <span class="chip"><b>E</b>Execution · Thực thi</span>
+        </div>
+        <div class="grid2">
+          <div class="card pros"><div class="k pos">Ưu điểm</div><ul><li>Cân bằng: vai trò + bối cảnh + giới hạn + định dạng + thực thi.</li><li>Giới hạn chặn lan man; định dạng cho kết quả dùng ngay.</li></ul></div>
+          <div class="card cons"><div class="k neg">Nhược điểm</div><ul><li>5 phần — cần đầu tư công sức một chút.</li><li>Phải biết trước giới hạn &amp; định dạng mình muốn.</li></ul></div>
+        </div>
+        <div class="callout"><div class="k">Ví dụ — báo cáo có cấu trúc</div><p class="c">Vai trò: chuyên viên phân tích. · Bối cảnh: dữ liệu tồn kho quý 2 (đính kèm). · Giới hạn: chỉ dùng số trong file, không suy đoán. · Định dạng: 3 phát hiện + 2 đề xuất, dạng bảng. · Thực thi: nêu rõ giả định ở cuối.</p></div>
+        <p class="note" style="font-size:16px;">Dùng khi: báo cáo, phân tích chiến lược, tài liệu giao khách — cần kết quả <em>chuyên nghiệp, có cấu trúc</em>.</p>
+      </div>
+    </section>
+
+    <!-- FRAMEWORK SUMMARY -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Tóm tắt — chọn khung</div>
+      <div class="head-block"><h2 class="title">Khung nào cho <span class="em">việc nào</span>?</h2></div>
+      <div class="body">
+        <table class="cmp sm">
+          <colgroup><col style="width:17%"><col style="width:13%"><col style="width:34%"><col style="width:36%"></colgroup>
+          <thead><tr><th>Khung</th><th>Số phần</th><th>Mạnh nhất ở</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td class="fw">COSTAR</td><td>6</td><td>Văn phong, giọng, đối tượng</td><td>Nội dung, marketing, email KH</td></tr>
+            <tr><td class="fw">RACE</td><td>4</td><td>Nhanh, gọn</td><td>Việc hằng ngày, phân tích nhanh</td></tr>
+            <tr class="rec"><td class="fw">R‑C‑C‑F‑E</td><td>5</td><td>Cân bằng, có cấu trúc</td><td>Báo cáo, phân tích, tài liệu giao khách</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Mới bắt đầu? Lấy <em>R‑C‑C‑F‑E</em> làm mặc định, rồi rút gọn về <em>RACE</em> khi cần nhanh.</p>
+      </div>
+    </section>
+
+    <!-- ============ PHẦN 3 — GEMS & NOTEBOOKLM ============ -->
+    <section class="slide" data-ground="ink">
+      <span class="gmotif">木</span>
+      <div class="eyebrow">/ Phần 03</div>
+      <div class="body" style="justify-content:center;">
+        <div class="kicker"><div class="num">03</div><div>
+          <h2 class="title" style="font-size:40px;color:var(--paper);">Trợ lý riêng &amp; tài liệu</h2>
+          <p class="lead" style="color:#D8D3CA;margin-top:10px;">Gemini <em>Gems</em> và <em>NotebookLM</em>.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- GEMS — what & why -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Gemini Gems — là gì &amp; vì sao</div>
+      <div class="head-block"><h2 class="title">Gems — <span class="em">chuyên gia AI riêng</span> của bạn.</h2></div>
+      <div class="body">
+        <div class="callout"><div class="k">Vấn đề nó giải quyết</div><p class="c">Khỏi phải gõ lại <b>cùng một chỉ dẫn</b> mỗi lần. Lưu sẵn vai trò + hướng dẫn → AI làm <b>nhất quán</b>.</p></div>
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t">Gem = một Gemini được "huấn luyện" cho <b>một việc lặp lại</b>.</span></li>
+          <li><span class="n">02</span><span class="t">Nhớ vai trò, văn phong và quy tắc riêng của bạn.</span></li>
+          <li><span class="n">03</span><span class="t">Như một "nhân viên" chuyên trách — bạn tập trung vào việc khó hơn.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GEMS — how to use -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Gems — cách tạo &amp; dùng</div>
+      <div class="head-block"><h2 class="title">Năm bước để có một <span class="em">Gem</span>.</h2></div>
+      <div class="body">
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t">Mở Gemini → menu <b>Gems</b> → tạo mới (hoặc dùng mẫu có sẵn).</span></li>
+          <li><span class="n">02</span><span class="t">Đặt <b>vai trò &amp; chuyên môn</b> cho Gem.</span></li>
+          <li><span class="n">03</span><span class="t">Tải tài liệu nền lên làm <b>"kiến thức"</b> (SOP, hướng dẫn từ Drive).</span></li>
+          <li><span class="n">04</span><span class="t">Lưu <b>chỉ dẫn chi tiết</b> về cách trả lời.</span></li>
+          <li><span class="n">05</span><span class="t">Dùng lại mãi; <b>chia sẻ cho cả nhóm</b> (xuất hiện trong Drive).</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GEMS — use cases -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Gems — dùng vào việc gì</div>
+      <div class="head-block"><h2 class="title">Một Gem cho mỗi <span class="em">việc lặp lại</span>.</h2></div>
+      <div class="body">
+        <div class="grid2">
+          <div class="card block"><div class="k">Viết</div><p class="ct">Trợ lý báo cáo</p><p class="cp muted">Viết đúng mẫu &amp; văn phong công ty.</p></div>
+          <div class="card block"><div class="k">Quy trình</div><p class="ct">"Chuyên gia" SOP nội bộ</p><p class="cp muted">Gắn quy trình → hỏi‑đáp nhất quán.</p></div>
+          <div class="card block"><div class="k">Cố vấn</div><p class="ct">Career coach · brainstorm</p><p class="cp muted">Đối tác tư duy theo ngữ cảnh của bạn.</p></div>
+          <div class="card block"><div class="k">Kỹ thuật</div><p class="ct">Trợ lý lập trình</p><p class="cp muted">Hỗ trợ code theo chuẩn của team.</p></div>
+        </div>
+        <p class="note">Prompt hay + tài liệu nội bộ = <em>một Gem dùng chung</em> cho cả team.</p>
+      </div>
+    </section>
+
+    <!-- NOTEBOOKLM -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ NotebookLM</div>
+      <div class="head-block"><h2 class="title">Hỏi‑đáp trên <span class="em">tài liệu của chính bạn</span>.</h2></div>
+      <div class="body">
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t">Hỏi thẳng manual, runbook, log... bằng ngôn ngữ thường.</span></li>
+          <li><span class="n">02</span><span class="t">Câu trả lời <b>có trích dẫn nguồn</b> → ít bịa, kiểm chứng được.</span></li>
+          <li><span class="n">03</span><span class="t">Nhận PDF, Google Docs, Slides, text, cả phụ đề YouTube.</span></li>
+          <li><span class="n">04</span><span class="t">Có sẵn trong bộ Workspace. <span class="sub">Hợp với: tra cứu quy trình, onboarding, kho tri thức nội bộ.</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ PHẦN 4 — ÁP DỤNG & THÓI QUEN ============ -->
+    <section class="slide" data-ground="ink">
+      <span class="gmotif">金</span>
+      <div class="eyebrow">/ Phần 04</div>
+      <div class="body" style="justify-content:center;">
+        <div class="kicker"><div class="num">04</div><div>
+          <h2 class="title" style="font-size:40px;color:var(--paper);">Áp dụng &amp; thói quen</h2>
+          <p class="lead" style="color:#D8D3CA;margin-top:10px;">Đưa AI vào việc thật — và <em>giữ nhịp</em>.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- APPLY + VERIFY -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Đưa AI vào việc thật</div>
+      <div class="head-block"><h2 class="title">Bốc một việc — và luôn <span class="em">kiểm tra lại</span>.</h2></div>
+      <div class="body" style="gap:20px;">
+        <div class="grid2">
+          <div class="card block"><div class="k">Bắt đầu</div><p class="ct">1 việc thật trong tuần</p><p class="cp muted">Để AI làm nhanh hơn (kết hợp Gems / NotebookLM nếu có).</p></div>
+          <div class="card ink"><span class="rv-b"></span><span class="rv-c"></span><div class="k">Phản xạ 30 giây</div><p class="ct" style="color:var(--paper)">Kiểm tra trước khi dùng</p><p class="cp">Bảo AI trích nguồn; tự hỏi "có dám lấy tên mình bảo đảm không?".</p></div>
+        </div>
+        <p class="note">AI tăng tốc; <em>bạn</em> chịu trách nhiệm kết quả.</p>
+      </div>
+    </section>
+
+    <!-- SAVE / LIBRARY -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Giữ lại cái hay</div>
+      <div class="head-block"><h2 class="title">Biến cái hay thành <span class="em">tài sản chung</span>.</h2></div>
+      <div class="body">
+        <div class="grid3">
+          <div class="card block"><div class="k">01</div><p class="ct">Lưu prompt hay</p><p class="cp muted">Prompt Templates dùng lại.</p></div>
+          <div class="card block"><div class="k">02</div><p class="ct">Đóng gói thành Gems</p><p class="cp muted">Chuyên gia AI tái sử dụng.</p></div>
+          <div class="card block"><div class="k">03</div><p class="ct">Thư viện chung</p><p class="cp muted">Google Doc / Drive cho cả nhóm.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUCCESS METRICS -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Chỉ số thành công</div>
+      <div class="head-block"><h2 class="title">Không đo được = không biết <span class="em">có hiệu quả</span>.</h2></div>
+      <div class="body">
+        <div class="checks">
+          <div class="row"><span class="box"></span><span class="n">01</span><span class="t">Mỗi người có <b>1 việc cố định</b> đang làm bằng AI.</span></div>
+          <div class="row"><span class="box"></span><span class="n">02</span><span class="t">Mỗi người lưu <b>≥ 3 prompt mẫu</b> dùng lại được.</span></div>
+          <div class="row"><span class="box"></span><span class="n">03</span><span class="t">Nhóm có <b>1 thư viện prompt chung</b>.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- POCKET -->
+    <section class="slide" data-ground="ink">
+      <div class="eyebrow">/ Bỏ túi nhanh</div>
+      <div class="head-block"><h2 class="title" style="color:var(--paper)">Ba điều mang về <span class="em">ngay</span>.</h2></div>
+      <div class="body" style="gap:18px;">
+        <div class="callout"><div class="k">Công thức prompt</div><p class="c" style="font-family:var(--font-mono);font-size:17px;">Vai trò + Bối cảnh + Giới hạn + Định dạng</p></div>
+        <ul class="idx">
+          <li><span class="n">01</span><span class="t" style="color:var(--paper)">Hỏi càng rõ, đáp càng đúng.</span></li>
+          <li><span class="n">02</span><span class="t" style="color:var(--paper)">AI có thể bịa → luôn kiểm tra việc quan trọng.</span></li>
+          <li><span class="n">03</span><span class="t" style="color:var(--paper)">Không dán dữ liệu nhạy cảm vào AI.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section class="slide" data-ground="ember">
+      <div class="eyebrow">/ Kết</div>
+      <div class="body" style="justify-content:center;gap:22px;">
+        <h1 class="display" style="font-size:54px;max-width:18ch;">AI là công cụ.<br><span class="em">Thói quen</span> mới là kết quả.</h1>
+        <p class="lead" style="color:rgba(31,31,31,.85);">Một việc thật, làm mỗi tuần, bằng AI — bắt đầu từ hôm nay.</p>
+        <div class="cover-foot" style="color:rgba(31,31,31,.7);"><span style="width:22px;height:9px;background:var(--ink);display:inline-block;"></span> TrungTH19 · Ứng dụng AI vào công việc</div>
+      </div>
+    </section>
+
+    <!-- footer -->
+    <div class="foot">
+      <div class="mark"><span class="bar"></span> TrungTH19 · Ứng&nbsp;dụng&nbsp;AI</div>
+      <div id="pagenum">01 — 01</div>
+    </div>
+  </div>
+</div>
+<div id="hint">← → di chuyển · F toàn màn hình · P xuất PDF</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+(function(){
+  if(window.lucide){try{lucide.createIcons();}catch(e){}}
+  var stage=document.getElementById('stage');
+  var slides=Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+  var fill=document.getElementById('fill'), pagenum=document.getElementById('pagenum');
+  var i=0,N=slides.length;
+  function pad(n){return (n<10?'0':'')+n;}
+  function show(n){i=Math.max(0,Math.min(N-1,n));slides.forEach(function(s,k){s.classList.toggle('active',k===i);});stage.setAttribute('data-ground',slides[i].getAttribute('data-ground'));fill.style.width=(N<2?100:(i/(N-1)*100))+'%';pagenum.textContent=pad(i+1)+' — '+pad(N);try{history.replaceState(null,'',location.pathname+'?page='+(i+1)+location.hash);}catch(e){}}
+  function startIndex(){var m=/[?&]page=(\d+)/.exec(location.search);var p=m?parseInt(m[1],10):1;return Math.max(1,Math.min(N,p))-1;}
+  function next(){show(i+1);}function prev(){show(i-1);}
+  function fit(){var s=Math.min(window.innerWidth/1280,window.innerHeight/720);stage.style.transform='scale('+s+')';}
+  window.addEventListener('resize',fit);fit();show(startIndex());
+  window.addEventListener('popstate',function(){show(startIndex());});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home'){show(0);}else if(e.key==='End'){show(N-1);}
+    else if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}else{document.exitFullscreen&&document.exitFullscreen();}}
+    else if(e.key==='p'||e.key==='P'){e.preventDefault();slides.forEach(function(s){s.classList.add('print');});window.print();setTimeout(function(){slides.forEach(function(s){s.classList.remove('print');});},500);}
+  });
+  document.getElementById('deck').addEventListener('click',function(e){if(e.clientX>window.innerWidth*0.5){next();}else{prev();}});
+  setTimeout(function(){document.getElementById('hint').style.opacity='0';},4200);
+})();
+</script>
+</body>
+</html>

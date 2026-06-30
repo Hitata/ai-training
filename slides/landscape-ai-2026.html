@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bản đồ AI 2026 — TrungTH19</title>
+<!--
+  Landscape deck (Sessions 1–2) — built on the Đinh Hỏa design system.
+  Currently: AI vs Human comparison slide. More landscape slides to follow.
+  Navigate: → / Space / click-right = next · ← = prev · F = fullscreen · P = print/PDF
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,700&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root{
+  --paper:#E8E4DD; --plaster:#B8A992; --cement:#8C8A85; --cement-text:#6B6862; --ink:#1F1F1F;
+  --ember:#A0522D; --ember-deep:#8F4527; --ink-slate:#28323B; --moss:#6B7A5A; --brass:#9A8557;
+  --ember-lift:#C06A3D;
+  --font-display:'Be Vietnam Pro',system-ui,sans-serif;
+  --font-sans:'Be Vietnam Pro',system-ui,sans-serif;
+  --font-serif:'Newsreader',Georgia,serif;
+  --font-mono:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased;}
+html,body{margin:0;height:100%;}
+body{background:#111110;color:var(--ink);font-family:var(--font-sans);display:grid;place-items:center;overflow:hidden;}
+
+#deck{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;}
+.stage{width:1280px;height:720px;position:relative;transform-origin:center center;background:var(--paper);box-shadow:0 0 0 1px #000,0 24px 80px rgba(0,0,0,.55);overflow:hidden;}
+
+.track{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.10);z-index:40;}
+.track .fill{height:100%;width:0;background:var(--ember);transition:width .25s linear;}
+
+.foot{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 72px;border-top:1px solid rgba(31,31,31,.22);font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cement-text);}
+.foot .mark{display:flex;align-items:center;gap:10px;}
+.foot .bar{width:22px;height:9px;background:var(--ember);display:inline-block;}
+
+.slide{position:absolute;inset:0;padding:58px 72px 64px;display:none;flex-direction:column;background:var(--paper);color:var(--ink);}
+.slide.active{display:flex;}
+
+.eyebrow{font-family:var(--font-mono);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;color:var(--cement-text);margin:0 0 18px;}
+.eyebrow .hot{color:var(--ember);}
+h2.title{font-family:var(--font-display);font-weight:800;font-size:32px;line-height:1.22;letter-spacing:-.02em;margin:0 0 6px;}
+.em{color:var(--ember);}
+.body{display:flex;flex-direction:column;gap:20px;flex:1;min-height:0;justify-content:center;}
+
+/* comparison table */
+.cmp{width:100%;border-collapse:collapse;border:1px solid var(--ink);box-shadow:4px 4px 0 0 var(--ink);background:var(--paper);}
+.cmp th,.cmp td{border:1px solid var(--ink);padding:16px 22px;text-align:left;vertical-align:middle;}
+.cmp thead th{background:var(--ink);color:var(--paper);font-family:var(--font-mono);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;line-height:1.3;}
+.cmp tbody td{font-size:20px;line-height:1.4;font-weight:500;}
+.cmp col.c-ai{width:31%;} .cmp col.c-tool{width:35%;} .cmp col.c-hu{width:34%;}
+.cmp td.ai{font-weight:700;}
+.cmp td.tool{font-family:var(--font-mono);font-size:17px;font-weight:700;color:var(--ember);background:color-mix(in srgb,var(--ember) 7%,var(--paper));letter-spacing:.01em;}
+.cmp td.hu{color:var(--ink-slate);}
+.cmp tbody tr:nth-child(even) td.ai,.cmp tbody tr:nth-child(even) td.hu{background:color-mix(in srgb,var(--cement) 12%,var(--paper));}
+.cmp tbody tr:nth-child(even) td.tool{background:color-mix(in srgb,var(--ember) 11%,var(--paper));}
+
+.note{font-family:var(--font-serif);font-size:21px;line-height:1.5;margin:0;}
+.note em{font-style:italic;color:var(--ember);}
+
+/* prompt-framework slides */
+.head-block{margin-bottom:2px;}
+.comps{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 4px;}
+.chip{border:1px solid var(--ink);padding:8px 13px;font-size:15px;line-height:1.3;background:var(--paper);}
+.chip b{font-family:var(--font-mono);font-weight:700;color:var(--ember);margin-right:7px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.card{border:1px solid var(--ink);background:var(--paper);padding:18px 20px;display:flex;flex-direction:column;gap:8px;}
+.card .k{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;}
+.card.pros{border-left:4px solid var(--moss);}
+.card.cons{border-left:4px solid var(--cement);}
+.card .k.pos{color:var(--moss);}
+.card .k.neg{color:var(--cement-text);}
+.card ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+.card li{font-size:16.5px;line-height:1.45;}
+.callout{border-left:4px solid var(--ember);background:var(--plaster);padding:15px 20px;display:flex;flex-direction:column;gap:5px;}
+.callout .k{font-family:var(--font-mono);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--ember);}
+.callout .c{font-size:17.5px;line-height:1.5;margin:0;}
+.badge{display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;background:var(--ember);color:var(--paper);padding:4px 10px;margin-left:8px;vertical-align:middle;}
+.fw-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;}
+.fw-list li{display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:baseline;border-top:1px solid rgba(31,31,31,.18);padding:13px 0;}
+.fw-list .nm{font-family:var(--font-display);font-weight:800;font-size:21px;}
+.fw-list .ds{font-size:17px;line-height:1.45;color:var(--cement-text);}
+.cmp.sm tbody td{font-size:16.5px;}
+.cmp td.fw{font-weight:700;}
+.cmp tr.rec td.fw{color:var(--ember);}
+
+#hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:60;font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#7a766e;background:rgba(0,0,0,.4);padding:6px 14px;border-radius:2px;transition:opacity .4s;pointer-events:none;}
+
+@media print{@page{size:1280px 720px;margin:0;}body{display:block;background:#fff;}#deck{position:static;}.stage{transform:none!important;box-shadow:none;page-break-after:always;}.slide{display:none!important;}.slide.print{display:flex!important;}#hint,.track{display:none;}}
+</style>
+</head>
+<body>
+<div id="deck">
+  <div class="stage" id="stage">
+    <div class="track"><div class="fill" id="fill"></div></div>
+
+    <!-- AI vs HUMAN -->
+    <section class="slide active" data-ground="paper">
+      <div class="eyebrow">/ Bối cảnh — <span class="hot">AI và con người</span></div>
+      <div class="head-block"><h2 class="title">Ranh giới 2026: AI giỏi gì, <span class="em">con người</span> giỏi gì.</h2></div>
+      <div class="body">
+        <table class="cmp">
+          <colgroup><col class="c-ai"><col class="c-tool"><col class="c-hu"></colgroup>
+          <thead>
+            <tr><th>Thế mạnh của AI</th><th>Công cụ nên dùng</th><th>Lợi thế của con người</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="ai">Nhận diện quy luật</td><td class="tool">Gemini</td><td class="hu">Trí tuệ cảm xúc</td></tr>
+            <tr><td class="ai">Xử lý dữ liệu tốc độ cao</td><td class="tool">Gemini · ChatGPT</td><td class="hu">Phán đoán đạo đức</td></tr>
+            <tr><td class="ai">Tự động hoá công việc</td><td class="tool">Codex · AI agents</td><td class="hu">Thích ứng giác quan</td></tr>
+            <tr><td class="ai">Tạo ngôn ngữ (viết)</td><td class="tool">Claude · GPT‑5.5</td><td class="hu">Ứng biến sáng tạo</td></tr>
+            <tr><td class="ai">Truy xuất thông tin</td><td class="tool">NotebookLM · Gemini</td><td class="hu">Tư duy phản biện</td></tr>
+          </tbody>
+        </table>
+        <p class="note">AI lo phần <em>tốc độ và khối lượng</em>; con người giữ phần <em>phán đoán, đạo đức và sáng tạo</em>.</p>
+      </div>
+    </section>
+
+    <!-- PROMPT FRAMEWORKS — intro -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Buổi 02 — Khung prompt chuyên nghiệp</div>
+      <div class="head-block"><h2 class="title">Prompt tốt = <span class="em">Vai trò + Bối cảnh + Giới hạn</span> rõ ràng.</h2></div>
+      <div class="body">
+        <p class="note">Với công việc văn phòng, prompt hiệu quả luôn cho AI ba thứ: <em>bối cảnh tình huống</em>, <em>vai trò rõ ràng</em>, và <em>giới hạn cụ thể</em>. Ba khung phổ biến dưới đây giúp làm điều đó một cách nhất quán.</p>
+        <ul class="fw-list">
+          <li><span class="nm">COSTAR</span><span class="ds">6 phần — kiểm soát kỹ văn phong, giọng điệu và đối tượng.</span></li>
+          <li><span class="nm">RACE</span><span class="ds">4 phần — nhanh, gọn, dễ nhớ cho việc hằng ngày.</span></li>
+          <li><span class="nm">R‑C‑C‑F‑E</span><span class="ds">5 phần — bản cân bằng cho dân văn phòng (khuyến nghị).</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- COSTAR -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Khung 01 — COSTAR</div>
+      <div class="head-block"><h2 class="title">COSTAR — kiểm soát <span class="em">giọng văn &amp; đối tượng</span>.</h2></div>
+      <div class="body">
+        <div class="comps">
+          <span class="chip"><b>C</b>Context · Bối cảnh</span>
+          <span class="chip"><b>O</b>Objective · Mục tiêu</span>
+          <span class="chip"><b>S</b>Style · Văn phong</span>
+          <span class="chip"><b>T</b>Tone · Giọng điệu</span>
+          <span class="chip"><b>A</b>Audience · Đối tượng</span>
+          <span class="chip"><b>R</b>Response · Định dạng</span>
+        </div>
+        <div class="grid2">
+          <div class="card pros"><div class="k pos">Ưu điểm</div><ul><li>Kiểm soát rất kỹ văn phong, giọng điệu, đối tượng.</li><li>Cho nội dung bóng bẩy, đúng "gu" người đọc.</li></ul></div>
+          <div class="card cons"><div class="k neg">Nhược điểm</div><ul><li>6 phần → dài dòng, quá mức cho việc đơn giản.</li><li>Không có "Vai trò" tường minh.</li></ul></div>
+        </div>
+        <div class="callout"><div class="k">Dùng khi</div><p class="c">Viết nội dung, marketing, email / thư khách hàng — khi <b>giọng văn và đối tượng</b> là quan trọng nhất.</p></div>
+      </div>
+    </section>
+
+    <!-- RACE -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Khung 02 — RACE</div>
+      <div class="head-block"><h2 class="title">RACE — <span class="em">nhanh, gọn</span>, dễ nhớ.</h2></div>
+      <div class="body">
+        <div class="comps">
+          <span class="chip"><b>R</b>Role · Vai trò</span>
+          <span class="chip"><b>A</b>Action · Hành động</span>
+          <span class="chip"><b>C</b>Context · Bối cảnh</span>
+          <span class="chip"><b>E</b>Expectation · Kỳ vọng</span>
+        </div>
+        <div class="grid2">
+          <div class="card pros"><div class="k pos">Ưu điểm</div><ul><li>Đơn giản 4 phần, dễ nhớ, làm nhanh.</li><li>Có vai trò + hành động rõ → hợp việc cần tốc độ.</li></ul></div>
+          <div class="card cons"><div class="k neg">Nhược điểm</div><ul><li>Ít kiểm soát văn phong &amp; định dạng.</li><li>"Kỳ vọng" dễ mơ hồ; yếu cho nội dung tinh tế.</li></ul></div>
+        </div>
+        <div class="callout"><div class="k">Dùng khi</div><p class="c">Việc hằng ngày cần <b>tốc độ</b>: phân tích nhanh, tóm tắt, yêu cầu một hành động cụ thể.</p></div>
+      </div>
+    </section>
+
+    <!-- R-C-C-F-E -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Khung 03 — R‑C‑C‑F‑E</div>
+      <div class="head-block"><h2 class="title">R‑C‑C‑F‑E — bản thiết kế cho dân văn phòng <span class="badge">Khuyến nghị</span></h2></div>
+      <div class="body">
+        <div class="comps">
+          <span class="chip"><b>R</b>Role · Vai trò</span>
+          <span class="chip"><b>C</b>Context · Bối cảnh</span>
+          <span class="chip"><b>C</b>Constraints · Giới hạn</span>
+          <span class="chip"><b>F</b>Format · Định dạng</span>
+          <span class="chip"><b>E</b>Execution · Thực thi</span>
+        </div>
+        <div class="grid2">
+          <div class="card pros"><div class="k pos">Ưu điểm</div><ul><li>Cân bằng: vai trò + bối cảnh + giới hạn + định dạng + thực thi.</li><li>Giới hạn chặn lan man; định dạng cho kết quả dùng được ngay (client‑ready).</li></ul></div>
+          <div class="card cons"><div class="k neg">Nhược điểm</div><ul><li>5 phần — cần đầu tư công sức một chút.</li><li>Phải biết trước giới hạn &amp; định dạng mình muốn.</li></ul></div>
+        </div>
+        <div class="callout"><div class="k">Dùng khi</div><p class="c">Báo cáo, phân tích chiến lược, tài liệu giao khách — khi cần kết quả <b>chuyên nghiệp, có cấu trúc</b>.</p></div>
+      </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="slide" data-ground="paper">
+      <div class="eyebrow">/ Tóm tắt — chọn khung</div>
+      <div class="head-block"><h2 class="title">Khung nào cho <span class="em">việc nào</span>?</h2></div>
+      <div class="body">
+        <table class="cmp sm">
+          <colgroup><col style="width:17%"><col style="width:13%"><col style="width:34%"><col style="width:36%"></colgroup>
+          <thead><tr><th>Khung</th><th>Số phần</th><th>Mạnh nhất ở</th><th>Dùng khi</th></tr></thead>
+          <tbody>
+            <tr><td class="fw">COSTAR</td><td>6</td><td>Văn phong, giọng, đối tượng</td><td>Nội dung, marketing, email khách hàng</td></tr>
+            <tr><td class="fw">RACE</td><td>4</td><td>Nhanh, gọn</td><td>Việc hằng ngày, phân tích nhanh</td></tr>
+            <tr class="rec"><td class="fw">R‑C‑C‑F‑E</td><td>5</td><td>Cân bằng, có cấu trúc</td><td>Báo cáo, phân tích, tài liệu giao khách</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Mới bắt đầu? Lấy <em>R‑C‑C‑F‑E</em> làm mặc định, rồi rút gọn về <em>RACE</em> khi cần nhanh.</p>
+      </div>
+    </section>
+
+    <div class="foot">
+      <div class="mark"><span class="bar"></span> TrungTH19 · Buổi&nbsp;1–2</div>
+      <div id="pagenum">01 — 01</div>
+    </div>
+  </div>
+</div>
+<div id="hint">← → di chuyển · F toàn màn hình · P xuất PDF</div>
+
+<script>
+(function(){
+  var stage=document.getElementById('stage');
+  var slides=Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+  var fill=document.getElementById('fill'), pagenum=document.getElementById('pagenum');
+  var i=0,N=slides.length;
+  function pad(n){return (n<10?'0':'')+n;}
+  function show(n){i=Math.max(0,Math.min(N-1,n));slides.forEach(function(s,k){s.classList.toggle('active',k===i);});fill.style.width=(N<2?100:(i/(N-1)*100))+'%';pagenum.textContent=pad(i+1)+' — '+pad(N);}
+  function next(){show(i+1);}function prev(){show(i-1);}
+  function fit(){var s=Math.min(window.innerWidth/1280,window.innerHeight/720);stage.style.transform='scale('+s+')';}
+  window.addEventListener('resize',fit);fit();show(0);
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+    else if(e.key==='Home'){show(0);}else if(e.key==='End'){show(N-1);}
+    else if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}else{document.exitFullscreen&&document.exitFullscreen();}}
+    else if(e.key==='p'||e.key==='P'){e.preventDefault();slides.forEach(function(s){s.classList.add('print');});window.print();setTimeout(function(){slides.forEach(function(s){s.classList.remove('print');});},500);}
+  });
+  document.getElementById('deck').addEventListener('click',function(e){if(e.clientX>window.innerWidth*0.5){next();}else{prev();}});
+  setTimeout(function(){document.getElementById('hint').style.opacity='0';},4200);
+})();
+</script>
+</body>
+</html>
